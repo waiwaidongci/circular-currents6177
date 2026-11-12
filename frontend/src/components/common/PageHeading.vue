@@ -1,0 +1,1 @@
+<script setup lang="ts">defineProps<{index:string;title:string;text:string}>()</script><template><div class="page-heading"><p class="eyebrow">DIRECTION NOTES / {{index}}</p><div><h1>{{title}}</h1><slot/></div><p>{{text}}</p></div></template>

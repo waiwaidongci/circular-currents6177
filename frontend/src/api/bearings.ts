@@ -1,0 +1,1 @@
+import{request}from './client';import type{Bearing}from '../types/domain';export const list=(survey:number,mooring:number,offset=0)=>request<{total:number;rows:Bearing[]}>(`/bearings?survey_id=${survey}&mooring_id=${mooring}&offset=${offset}&limit=24`);export const importRows=(data:unknown)=>request<{inserted:number}>('/bearings',{method:'POST',body:JSON.stringify(data)});

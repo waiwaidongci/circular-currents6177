@@ -1,0 +1,1 @@
+import{ref}from 'vue';export function useTask(){const error=ref('');const busy=ref(false);async function execute(fn:()=>Promise<unknown>){busy.value=true;error.value='';try{await fn()}catch(e){error.value=e instanceof Error?e.message:'请求失败，可重试'}finally{busy.value=false}}return{error,busy,execute};}

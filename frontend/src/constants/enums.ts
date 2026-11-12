@@ -1,0 +1,1 @@
+export const roles={admin:'观测负责人',analyst:'圆周研究员',viewer:'研究阅读者'};export const states:Record<string,string>={queued:'等待计算',running:'正在研究',completed:'已归档',failed:'计算失败',draft:'待审阅',approved:'已批准',rejected:'退回'};export const fitStates:Record<string,string>={estimated:'可估单峰描述',mean_undefined:'均值方向不定义',concentration_degenerate:'集中度退化'};

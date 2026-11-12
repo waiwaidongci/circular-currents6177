@@ -1,0 +1,1 @@
+export function fmt(x:number|null|undefined,d=3){return x===null||x===undefined||!Number.isFinite(x)?'—':x.toLocaleString('zh-CN',{maximumFractionDigits:d,minimumFractionDigits:0})}export function bearing(x:number|null|undefined){return x===null||x===undefined?'方向不定义':fmt(x,2)+'°'}export function date(x:string){return new Date(x.endsWith('Z')?x:x+'Z').toLocaleString('zh-CN')}

@@ -1,0 +1,1 @@
+import{request}from './client';import type{User}from '../types/domain';export const login=(email:string,password:string)=>request<{access_token:string;user:User}>('/auth/login',{method:'POST',body:JSON.stringify({email,password})});
