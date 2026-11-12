@@ -3,7 +3,7 @@ from sqlalchemy import select,func
 from src.config.database import Base,engine,SessionLocal
 from src.models import User,DirectionSurvey,Mooring,BearingReading,DirectionRun,ObservationNote
 from src.utils.security import hash_password
-from src.services.run_service import compute
+from src.services.run_service import compute,build_snapshot
 def seed():
     Base.metadata.create_all(engine)
     with SessionLocal() as db:
@@ -28,7 +28,7 @@ def seed():
         db.commit();run=db.scalar(select(DirectionRun).where(DirectionRun.name=='跨零流向 · 初始研究'))
         if not run:
             survey=db.scalar(select(DirectionSurvey).where(DirectionSurvey.code=='cross-zero'));user=db.scalar(select(User).where(User.role=='admin'))
-            run=DirectionRun(name='跨零流向 · 初始研究',survey_id=survey.id,mooring_a_id=moorings[0].id,mooring_b_id=moorings[1].id,permutations=499,seed=157,created_by=user.id);db.add(run);db.commit();compute(db,run.id)
+            run=DirectionRun(name='跨零流向 · 初始研究',survey_id=survey.id,mooring_a_id=moorings[0].id,mooring_b_id=moorings[1].id,permutations=499,seed=157,created_by=user.id,input_snapshot=build_snapshot(db,survey.id,moorings[0].id,moorings[1].id));db.add(run);db.commit();compute(db,run.id)
             db.add(ObservationNote(title='跨零采样 · 观察口径',run_id=run.id,interpretation='两组均跨过0度附近，圆周差异需与采样独立性一起阅读。',action='保持协议补采独立时段，复核传感器方向标定。',status='approved',approved_by=user.email,review_comment='只作合成统计口径示范，待现场复核。',created_by=user.id));db.commit()
         counts={name:db.scalar(select(func.count()).select_from(model)) for name,model in [('users',User),('surveys',DirectionSurvey),('moorings',Mooring),('readings',BearingReading),('runs',DirectionRun),('notes',ObservationNote)]};print(json.dumps(counts));return counts
 if __name__=='__main__':seed()

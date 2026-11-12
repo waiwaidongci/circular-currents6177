@@ -69,14 +69,14 @@ R<1e−8时均值方向为空、单峰集中度MLE为0；1−R<1e−8时集中�
 | 前端 | Vue3.5.45 / TypeScript / Vue Router / Vite6.4.6 / Nginx1.27 |
 | 后端 | Python3.11 / FastAPI0.115.6 / SQLAlchemy2 / PyMySQL / PyJWT |
 | 计算 | NumPy2.1.3 / SciPy1.14.1 |
-| 异步 | Redis7 AOF，单Python消费者，DB任务状态 |
+| 异步 | Redis7 AOF，DB任务状态；受理即固化输入快照，租约+原子认领，中断自动恢复 |
 | 数据库 | MySQL8.0，连续数值DOUBLE |
 
 五服务恰好frontend/backend/worker/db/redis，均有健康检查；backend/worker依赖db/redis healthy，frontend依赖backend healthy。数据库、Redis和共享artifacts命名卷。COMPOSE_PROJECT_NAME=circular-currents；FRONTEND_PORT/BACKEND_PORT/DB_PORT=18229/19229/17729，另有MYSQL_DATABASE/USER/PASSWORD/ROOT_PASSWORD、JWT_SECRET、SEED_DEMO，见.env.example。中文父目录可启动。
 
 SEED_DEMO=true自动seed，异常只记日志；脚本可独立执行。初始3账号、2浮标、3期×2×120=720角度、1研究和1批准说明；自然键只增缺失，不覆盖备注或已有研究。固定seed157/158/159生成三种形状。QA新增调查、运行和说明与seed数量分开记录。
 
-本地开发启动db/redis，安装requirements并设DATABASE_URL/REDIS_URL/JWT_SECRET，运行`uvicorn src.main:app --reload`和`python -m src.worker`；前端`npm ci && npm run dev`，/api代理19229。迁移目录说明metadata初始化，无生产增量升级。测试/CSV/截图/TESTING在批次test-artifacts/gb-0025；MIT见LICENSE。
+本地开发启动db/redis，安装requirements并设DATABASE_URL/REDIS_URL/JWT_SECRET，运行`uvicorn src.main:app --reload`和`python -m src.worker`；前端`npm ci && npm run dev`，/api代理19229。测试用`pip install -r backend/requirements-dev.txt`后在backend目录`python -m pytest tests/`：以SQLite与fakeredis覆盖受理快照、重复投递、并发认领、租约恢复、旧执行者迟归和API契约，无需启动MySQL/Redis。测试/CSV/截图/TESTING在批次test-artifacts/gb-0025；MIT见LICENSE。
 
 ## 已知差异
 
@@ -84,4 +84,6 @@ SEED_DEMO=true自动seed，异常只记日志；脚本可独立执行。初始3�
 - von Mises单峰描述，无均值/κ置信区间；R₂为描述阈值，少量观测尤其不稳。
 - energy比较分布，小p不代表效应大小或成因；重复研究未作跨研究多重校正，不自动行动。
 - JSON输入已规范角度，不把未知角度归零；每组最多250条/999置换，未做生产压测。
-- 单worker无running恢复/事务outbox，中断需另建任务；metadata首建表，Google字体离线回退。
+- 研究在受理时固化两组采样与参数快照（direction_runs.input_snapshot），计算与中断恢复只读取快照；补录采样仅影响之后新建的研究，旧研究沿用原编号与原结果格式（租约列claimed_by/claimed_at不对外序列化）。
+- 任务投递采用先落库后入队：入队失败由恢复协调按DB状态重新投递；worker以条件UPDATE原子认领queued任务（claimed_by+claimed_at租约，120秒），租约过期的running自动重置重排队。完成/失败发布均带认领者条件，重复投递、并发执行者或旧执行者迟归都不会产生或覆盖结果，每份研究只发布一个完整结果；确定性计算失败仍保留明确failed任务，不自动重试。
+- 元数据首建表（含快照与租约列），无生产增量升级；Google字体离线回退。
